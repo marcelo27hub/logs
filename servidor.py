@@ -28,4 +28,20 @@ def inicializar_db():
     
 inicializar_db()
 
-    
+tokens_validos = {
+    "TOKEN_SERVICIO_A" : "servicio-a",
+    "TOKEN_SERVICIO_B" : "servicio-b"
+} 
+#funcion para la hora y fecha actual 
+def hora_actual():
+    return datetime.now(timezone.utc).isoformat()
+
+#funcion para verificar si el el token del log esta autorizado
+def verificar_token():
+    autorizacion = request.headers.get("Autorisacion", "")
+    if not autorizacion.startswith("Token "):
+        return None
+    token = autorizacion.split(" ")[1].strip()
+    if token in tokens_validos:
+        return token 
+    return None
