@@ -24,3 +24,19 @@ def enviar_log(mensaje, nivel= "INFO", servicio = "servicio-a"):
 
     print("STATUS:", respuesta.status_code)
     print("RESPUESTA:", respuesta.json())
+    
+def enviar_multiples_logs(lista_mensajes):
+    logs = []
+
+    for texto in lista_mensajes:
+        logs.append({
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "service": "servicio-a",
+            "severity": "INFO",
+            "message": texto
+        })
+
+    respuesta = requests.post(servidor_url, headers=HEADERS, data=json.dumps(logs))
+
+    print("STATUS:", respuesta.status_code)
+    print("RESPUESTA:", respuesta.json())
