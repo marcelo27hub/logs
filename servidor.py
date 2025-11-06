@@ -10,7 +10,7 @@ base_de_datos = "logs.db"
 
 #para inicializar nuestra base de datos
 def inicializar_db():
-    conexion = sqlite3.connect(base_de_datos)
+    conexion = sqlite3.connect(base_de_datos) 
     cursor = conexion.cursor()
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS logs (
@@ -22,10 +22,10 @@ def inicializar_db():
             recibido_en TEXT 
             
         )
-     """)
+    """)
     conexion.commit()
     conexion.close()
-    
+
 inicializar_db()
 
 tokens_validos = {
@@ -105,6 +105,5 @@ def consultar_logs():
 
 
 #ejecutar el servidor
-
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
