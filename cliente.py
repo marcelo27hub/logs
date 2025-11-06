@@ -50,5 +50,17 @@ def consultar_logs():
     for log in datos["logs"]:
         print(log)
             
-            
+if __name__ == "__main__":
+    print("Enviando log simple...")
+    enviar_log("El sistema arrancó correctamente", "INFO")
+
+    print("\nEnviando varios logs a la vez...")
+    enviar_multiples_logs([
+        "Usuario se conectó",
+        "Base de datos respondió lento",
+        "Se detectó un ping alto en la red"
+    ])
+
+    print("\nConsultando logs actuales...")
+    consultar_logs()           
             
