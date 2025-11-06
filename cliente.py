@@ -41,11 +41,14 @@ def enviar_multiples_logs(lista_mensajes):
     print("STATUS:", respuesta.status_code)
     print("RESPUESTA:", respuesta.json())
     
-    def consultar_logs():
-        respuesta = requests.get(servidor_url)
-        print("STATUS:", respuesta.status_code)
-        datos = respuesta.json()
+def consultar_logs():
+    respuesta = requests.get(servidor_url)
+    print("STATUS:", respuesta.status_code)
+    datos = respuesta.json()
 
-        print(f"Cantidad de logs: {datos['cantidad']}")
-        for log in datos["logs"]:
-            print(log)
+    print(f"Cantidad de logs: {datos['cantidad']}")
+    for log in datos["logs"]:
+        print(log)
+            
+            
+            
