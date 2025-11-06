@@ -1,10 +1,10 @@
 #importmaos librerias que usaremos
 
-from flask import flask, request, jsonify
+from flask import Flask, request, jsonify
 from datetime import datetime, timezone
 import sqlite3
 
-app = flask(__name__)
+app = Flask(__name__)
 
 base_de_datos = "logs.db"
 
@@ -38,7 +38,9 @@ def fecha_hora_actual():
 
 #funcion para verificar si el el token del log esta autorizado
 def verificar_token():
-    autorizacion = request.headers.get("Autorisacion", "")
+    autorizacion = request.headers.get("Authorization", "")
+    if not isinstance(autorizacion, str):
+        return None
     if not autorizacion.startswith("Token "):
         return None
     token = autorizacion.split(" ")[1].strip()
@@ -65,17 +67,44 @@ def recibir_logs():
     conexion = sqlite3.connect(base_de_datos)
     cursor = conexion.cursor()
     for log in lista_de_logs:
-        fecha_evento = log.get("timestamp", fecha_hora_actual())
+        fecha_hora_evento = log.get("timestamp", fecha_hora_actual())
         servicio = log.get("service", tokens_validos[token])
         nivel = log.get("severity", "INFO")
         mensaje = log.get("message", "")
         recibido_en = fecha_hora_actual()
         
-        cursor.excute("""
-            INSERT INTO logs (fecha_evento, servicio, nivel, mensaje, recibido_en)
+        cursor.execute("""
+            INSERT INTO logs (fecha_hora_evento, servicio, nivel, mensaje, recibido_en)
             VALUES (?, ?, ?, ?, ?)
-            """), (fecha_evento, servicio, nivel, mensaje, recibido_en)
-        conexion.commit()
-        conexion.close()
-        return jsonify({"ok": True, "guardados": len(lista_de_logs)}), 201     
+            """, (fecha_hora_evento, servicio, nivel, mensaje, recibido_en))
+    conexion.commit()
+    conexion.close()
+    return jsonify({"ok": True, "guardados": len(lista_de_logs)}), 201     
     
+#endpoint para consultar logs
+@app.route("/logs", methods = ["GET"])
+def consultar_logs():
+    conexion = sqlite3.connect(base_de_datos)
+    cursor = conexion.cursor()
+    cursor.execute("SELECT * FROM logs ORDER BY id DESC")
+    filas = cursor.fetchall()
+    conexion.close()
+    
+    logs = []
+    for fila in filas:
+        logs.append({
+            "id": fila[0],
+            "fecha_hora_evento": fila[1],
+            "servicio": fila[2],
+            "nivel": fila[3],
+            "mensaje": fila[4],
+            "recibido_en": fila[5],
+            
+        })
+    return jsonify({"cantidad": len(logs), "logs": logs})
+
+
+#ejecutar el servidor
+
+if __name__ == "__main__":
+    app.run(host="127.0.0.1", port=5000, debug=True)
