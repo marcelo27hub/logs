@@ -5,14 +5,21 @@ from datetime import datetime, timezone
 import time
 
 servidor_url = "http://127.0.0.1:5000/logs"
-token = "TOKEN_SERVICIO_A" #cambia segun tu servicio
-
-HEADERS = {
-    "content-type" : "aplicacion/json",
-    "Autholrizacion" : f"Token {token}"
+# Tokens de varios servicios
+SERVICIOS = {
+    "TOKEN_SERVICIO_A": "servicio-a",
+    "TOKEN_SERVICIO_B": "servicio-b"
 }
 
-def enviar_log(mensaje, nivel= "INFO", servicio = "servicio-a"):
+
+# Niveles de severidad posibles
+NIVELES = ["INFO", "DEBUG", "ERROR"]
+
+def enviar_log(token, mensaje, nivel= "INFO", servicio = "servicio-a"):
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Token {token}"
+    }
     log= {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "service": servicio,
@@ -20,26 +27,23 @@ def enviar_log(mensaje, nivel= "INFO", servicio = "servicio-a"):
         "message": mensaje
 
     }
-    respuesta = requests.post(servidor_url, headers=HEADERS, data=json.dumps(log))
+    respuesta = requests.post(servidor_url, headers=headers, data=json.dumps(log))
+    print(f"[{servicio} - {nivel}] STATUS: {respuesta.status_code} | RESPUESTA: {respuesta.json()}")
 
-    print("STATUS:", respuesta.status_code)
-    print("RESPUESTA:", respuesta.json())
     
-def enviar_multiples_logs(lista_mensajes):
-    logs = []
+def enviar_multiples_logs_fijos(cantidad_por_nivel=3):
+    niveles_servicios = {
+        "INFO": ("TOKEN_SERVICIO_A", "servicio-a", "Todo funcionando correctamente"),
+        "DEBUG": ("TOKEN_SERVICIO_C", "servicio-c", "Debugging proceso interno"),
+        "ERROR": ("TOKEN_SERVICIO_B", "servicio-b", "Se detectó un error crítico")
+    }
 
-    for texto in lista_mensajes:
-        logs.append({
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "service": "servicio-a",
-            "severity": "INFO",
-            "message": texto
-        })
+    for nivel, (token, servicio, mensaje_base) in niveles_servicios.items():
+        for i in range(cantidad_por_nivel):
+            mensaje = f"{mensaje_base} #{i+1}"
+            enviar_log(token, mensaje, nivel, servicio)
+            time.sleep(0.2)
 
-    respuesta = requests.post(servidor_url, headers=HEADERS, data=json.dumps(logs))
-
-    print("STATUS:", respuesta.status_code)
-    print("RESPUESTA:", respuesta.json())
     
 def consultar_logs():
     respuesta = requests.get(servidor_url)
@@ -51,16 +55,8 @@ def consultar_logs():
         print(log)
             
 if __name__ == "__main__":
-    print("Enviando log simple...")
-    enviar_log("El sistema arrancó correctamente", "INFO")
+    print("Enviando logs simples y múltiples con niveles y servicios distintos...")
+    enviar_multiples_logs_fijos(3)
 
-    print("\nEnviando varios logs a la vez...")
-    enviar_multiples_logs([
-        "Usuario se conectó",
-        "Base de datos respondió lento",
-        "Se detectó un ping alto en la red"
-    ])
-
-    print("\nConsultando logs actuales...")
-    consultar_logs()           
-            
+    print("\nConsultando todos los logs...")
+    consultar_logs()
